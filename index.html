@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>36 Misi Bisnis Digital - Teka-Teki Silang Edukasi SMK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Aspect ratio 16:9 container */
+        .aspect-16-9-wrapper {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .game-viewport {
+            width: 100%;
+            max-width: 1280px;
+            aspect-ratio: 16 / 9;
+            max-height: 100vh;
+            position: relative;
+            background: linear-gradient(135deg, rgba(30, 27, 75, 0.95), rgba(15, 23, 42, 0.98));
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px rgba(99, 102, 241, 0.35);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        /* Pandora Box 3D Effect */
+        .pandora-box-container {
+            perspective: 1000px;
+        }
+
+        .pandora-box {
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .pandora-box.opening {
+            transform: rotateY(180deg) scale(1.1);
+        }
+
+        @keyframes boxGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.5), inset 0 0 15px rgba(245, 158, 11, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(236, 72, 153, 0.8), inset 0 0 25px rgba(236, 72, 153, 0.5); }
+        }
+
+        .pandora-glow {
+            animation: boxGlow 2s infinite alternate;
+        }
+
+        /* 36 Animated Pandora Grid Cells */
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .puzzle-card {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            border-radius: 10px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+        }
+
+        .puzzle-card:hover {
+            transform: translateY(-2px) scale(1.04);
+        }
+
+        .puzzle-card.unopened {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #f3f4f6;
+        }
+
+        .puzzle-card.active-target {
+            background: linear-gradient(135deg, #f59e0b, #ec4899);
+            border: 2px solid #fef08a;
+            color: #ffffff;
+            animation: pulse 1.2s infinite;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.8);
+        }
+
+        .puzzle-card.solved-100 {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #ffffff;
+            border: 1px solid #34d399;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+        }
+
+        .puzzle-card.solved-50 {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            color: #ffffff;
+            border: 1px solid #fbbf24;
+        }
+
+        .puzzle-card.failed {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: #ffffff;
+            border: 1px solid #f87171;
+            opacity: 0.8;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.25);
+            border-radius: 8px;
+        }
+
+        @media (max-aspect-ratio: 16/9) {
+            .game-viewport {
+                aspect-ratio: auto;
+                height: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white overflow-hidden select-none">
+
+<div class="aspect-16-9-wrapper">
+    <!-- Confetti Canvas for Celebrations -->
+    <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <div id="gameViewport" class="game-viewport">
+
+        <!-- Header Controls -->
+        <header class="h-14 sm:h-16 px-4 sm:px-6 bg-slate-900/90 border-b border-slate-700/50 flex items-center justify-between shrink-0 z-20">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-pink-500 to-indigo-500 flex items-center justify-center font-black text-xl shadow-lg">
+                    🎁
+                </div>
+                <div>
+                    <h1 class="font-black text-sm sm:text-base tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-pink-400 to-cyan-300">
+                        TTS BISNIS & KONTEN DIGITAL 36
+                    </h1>
+                    <p class="text-[10px] sm:text-xs text-slate-400 font-medium">Gim Edukasi Estafet Kelas SMK (36 Kotak Pandora Misi)</p>
+                </div>
+            </div>
+
+            <!-- Global Action Controls -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Time selector dropdown -->
+                <div class="flex items-center bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-700">
+                    <span class="text-[10px] text-slate-400 font-bold mr-1">⏱️ Waktu:</span>
+                    <select id="timerSelect" onchange="changeTimeLimit(this.value)" class="bg-transparent text-amber-300 text-xs font-bold outline-none cursor-pointer">
+                        <option value="15" class="bg-slate-900 text-white">15 Detik (Sedang)</option>
+                        <option value="10" class="bg-slate-900 text-white">10 Detik (Cepat)</option>
+                        <option value="5" class="bg-slate-900 text-white">5 Detik (Ekstrem)</option>
+                    </select>
+                </div>
+                
+                <button onclick="showLeaderboardModal()" class="p-2 sm:px-3 sm:py-1.5 rounded-lg glass-panel hover:bg-white/20 transition flex items-center text-xs font-semibold text-amber-300">
+                    <span>🏆</span>
+                    <span class="hidden sm:inline ml-1">Klasemen</span>
+                </button>
+                <button id="soundToggleBtn" onclick="toggleAudio()" class="p-2 sm:px-3 sm:py-1.5 rounded-lg glass-panel hover:bg-white/20 transition flex items-center text-xs font-semibold">
+                    <span id="soundIcon">🔊</span>
+                    <span class="hidden sm:inline ml-1">Suara</span>
+                </button>
+                <button onclick="toggleFullscreen()" class="p-2 sm:px-3 sm:py-1.5 rounded-lg glass-panel hover:bg-white/20 transition flex items-center text-xs font-semibold">
+                    <span>🖥️</span>
+                    <span class="hidden sm:inline ml-1">Layar Penuh</span>
+                </button>
+                <button onclick="showScreen('guide')" class="p-2 sm:px-3 sm:py-1.5 rounded-lg glass-panel hover:bg-white/20 transition flex items-center text-xs font-semibold">
+                    <span>📖</span>
+                    <span class="hidden sm:inline ml-1">Aturan</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 relative overflow-hidden flex flex-col justify-center items-center">
+
+            <!-- 1. HOME SCREEN -->
+            <div id="screenHome" class="w-full h-full flex flex-col justify-between items-center p-6 text-center z-10 overflow-y-auto custom-scroll">
+                <div class="my-auto max-w-3xl flex flex-col items-center">
+                    <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs sm:text-sm font-semibold mb-4 animate-bounce">
+                        ✨ Gim Acak Dinamis: Soal & Kunci Jawaban Selalu Diacak Otomatis!
+                    </div>
+                    
+                    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-4">
+                        36 Kotak Pandora, <br>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-pink-400 to-emerald-400">
+                            Teka-Teki Bisnis & Konten
+                        </span>
+                    </h1>
+
+                    <p class="text-xs sm:text-sm md:text-base text-slate-300 max-w-2xl mb-6 leading-relaxed">
+                        Siswa bergiliran maju satu per satu dari <span class="text-amber-300 font-bold">Nomor 1 sampai 36</span>.
+                        Buka Kotak Pandora Misi, analisis jawaban dengan pengecoh yang mirip, pecahkan teka-teki, dan unduh laporan nilai otomatis ke <span class="text-emerald-300 font-bold">Excel & Word</span> di akhir gim!
+                    </p>
+
+                    <!-- Topic Badges -->
+                    <div class="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8">
+                        <span class="px-3 py-1.5 rounded-lg bg-indigo-900/60 border border-indigo-500/40 text-xs font-bold text-indigo-200">
+                            📊 Bisnis Model Canvas (1-12)
+                        </span>
+                        <span class="px-3 py-1.5 rounded-lg bg-pink-900/60 border border-pink-500/40 text-xs font-bold text-pink-200">
+                            📱 Pemasaran Digital (13-24)
+                        </span>
+                        <span class="px-3 py-1.5 rounded-lg bg-emerald-900/60 border border-emerald-500/40 text-xs font-bold text-emerald-200">
+                            💡 Konten Kreatif & Inovasi (25-36)
+                        </span>
+                    </div>
+
+                    <!-- Start Button -->
+                    <button onclick="startGame()" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-pink-600 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 font-black text-lg shadow-xl shadow-amber-500/25 transform hover:-translate-y-0.5 active:translate-y-0 transition">
+                        🎁 MULAI BUKA KOTAK PANDORA (36 SOAL)
+                    </button>
+                </div>
+
+                <div class="text-xs text-slate-400 py-2 border-t border-slate-800 w-full flex justify-between items-center">
+                    <span>Mekanika Gim: Batas Waktu 5–15 Detik + Pengecoh Mirip + Klasemen Nilai</span>
+                    <span>Modul Pembelajaran Kreativitas SMK</span>
+                </div>
+            </div>
+
+            <!-- 2. PANDUAN SCREEN -->
+            <div id="screenGuide" class="hidden w-full h-full flex flex-col p-6 max-w-4xl mx-auto overflow-y-auto custom-scroll">
+                <div class="flex items-center justify-between border-b border-slate-700/60 pb-4 mb-4">
+                    <h2 class="text-2xl font-bold text-amber-300 flex items-center gap-2">
+                        <span>📖</span> Aturan Gim & Sistem Acak
+                    </h2>
+                    <button onclick="showScreen('home')" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold">
+                        ✕ Tutup
+                    </button>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4 text-xs sm:text-sm">
+                    <div class="glass-card p-4 rounded-xl space-y-3 border-l-4 border-amber-500">
+                        <h3 class="font-bold text-base text-amber-300">💯 Aturan Nilai & Waktu</h3>
+                        <p class="text-slate-300">
+                            Setiap siswa maju menjawab 1 nomor dengan batas waktu <b>5, 10, atau 15 detik</b>.
+                        </p>
+                        <ul class="list-disc list-inside text-slate-300 space-y-1">
+                            <li><b class="text-emerald-400">Percobaan 1 Benar:</b> 100 Poin.</li>
+                            <li><b class="text-amber-400">Percobaan 2 Benar:</b> 50 Poin.</li>
+                            <li><b class="text-red-400">Salah 2x / Waktu Habis:</b> 0 Poin.</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card p-4 rounded-xl space-y-3 border-l-4 border-indigo-500">
+                        <h3 class="font-bold text-base text-indigo-300">🎲 Pengacakan Otomatis</h3>
+                        <p class="text-slate-300">
+                            Setiap permainan diulang, urutan 36 soal dan letak kunci jawaban A, B, C, D diacak total sehingga tidak bisa dihapal posisinya.
+                        </p>
+                    </div>
+
+                    <div class="glass-card p-4 rounded-xl space-y-3 border-l-4 border-emerald-500">
+                        <h3 class="font-bold text-base text-emerald-300">🧩 Papan Teka-Teki Kotak 36 Misi</h3>
+                        <p class="text-slate-300">
+                            Papan kanan menampilkan 36 Kotak Misi Animasi Interaktif. Kotak akan berubah warna sesuai status capaian nilai siswa.
+                        </p>
+                    </div>
+
+                    <div class="glass-card p-4 rounded-xl space-y-3 border-l-4 border-pink-500">
+                        <h3 class="font-bold text-base text-pink-300">📊 Klasemen & Rekap Excel/Word</h3>
+                        <p class="text-slate-300">
+                            Nilai setiap sesi akan tercatat di Papan Klasemen Kelas dan bisa diunduh ke dalam berkas Excel (.csv) dan Word (.doc).
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <button onclick="startGame()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 font-bold text-white shadow-lg">
+                        🚀 Mulai Permainan Sekarang!
+                    </button>
+                </div>
+            </div>
+
+            <div id="screenGame" class="hidden w-full h-full flex flex-col p-3 sm:p-5 justify-between relative">
+                
+                <!-- HUD Bar -->
+                <div class="glass-panel p-3 rounded-2xl mb-2 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                    
+                    <!-- Progress Info -->
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-gradient-to-r from-amber-500 to-pink-500 px-3 py-1 rounded-xl text-slate-950 font-extrabold text-center shadow-lg">
+                            <span class="text-[9px] block uppercase opacity-80">Misi No</span>
+                            <span id="hudQuestionNum" class="text-base sm:text-lg">1 / 36</span>
+                        </div>
+                        <div>
+                            <span id="hudCategoryTag" class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                                Bisnis Model Canvas
+                            </span>
+                            <div class="text-xs font-semibold text-slate-300 mt-0.5">
+                                Giliran Siswa: <span id="studentTurnIndicator" class="text-amber-300 font-extrabold">Siswa #1</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attempts Status & Combo -->
+                    <div class="flex items-center space-x-3">
+                        <div id="attemptBadge" class="bg-indigo-600/60 border border-indigo-400/50 px-3 py-1 rounded-xl text-xs font-bold text-indigo-200">
+                            Percobaan: <span id="attemptNumText" class="text-amber-300">1 dari 2</span>
+                        </div>
+                        <div class="hidden sm:flex items-center space-x-1 bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-1 rounded-xl text-emerald-300 text-xs font-bold">
+                            <span>🔥 Combo:</span>
+                            <span id="hudStreak">x0</span>
+                        </div>
+                    </div>
+
+                    <!-- Countdown Bar & Score -->
+                    <div class="flex items-center space-x-4">
+                        <div class="flex flex-col items-end">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase">Sisa Waktu</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-24 sm:w-32 bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-600">
+                                    <div id="timerBar" class="bg-gradient-to-r from-emerald-400 via-amber-400 to-red-500 h-full w-full transition-all duration-200"></div>
+                                </div>
+                                <span id="timerText" class="text-sm font-black text-amber-300 w-8 text-right">15s</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-500/20 border border-amber-500/40 px-3.5 py-1 rounded-xl text-right">
+                            <span class="text-[10px] block text-amber-300 uppercase font-bold">Total Nilai</span>
+                            <span id="hudScore" class="text-base sm:text-lg font-black text-amber-400">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Interactive Split View (Question Box Left, Animated 36 Boxes Grid Right) -->
+                <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 overflow-hidden min-h-0">
+                    
+                    <!-- Left Column: Pandora Box + Question Card (7 cols) -->
+                    <div class="lg:col-span-7 glass-card rounded-2xl p-4 flex flex-col justify-between relative overflow-hidden">
+                        
+                        <!-- PANDORA BOX ANIMATION OVERLAY (Shown before revealing question) -->
+                        <div id="pandoraOverlay" class="absolute inset-0 z-30 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4">
+                            <div class="pandora-box-container mb-4">
+                                <div id="pandoraBoxGraphic" class="pandora-box pandora-glow w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-gradient-to-tr from-amber-500 via-pink-600 to-indigo-600 flex flex-col items-center justify-center text-4xl sm:text-5xl cursor-pointer shadow-2xl border-2 border-amber-300" onclick="openPandoraBox()">
+                                    <span>🎁</span>
+                                    <span class="text-xs font-black text-white mt-1 uppercase tracking-widest">Misi #<span id="pandoraBoxNum">1</span></span>
+                                </div>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-amber-300 text-center mb-1">
+                                Kotak Pandora Misi Siswa #<span id="pandoraStudentNum">1</span>
+                            </h3>
+                            <p class="text-xs text-slate-300 text-center mb-4">Klik kotak atau tombol di bawah untuk membuka soal teka-teki!</p>
+                            <button onclick="openPandoraBox()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-pink-600 font-extrabold text-xs text-slate-950 shadow-lg animate-pulse">
+                                🔓 Buka Sekarang & Mulai Waktu (<span id="boxTimeLimitText">15</span>d)
+                            </button>
+                        </div>
+
+                        <!-- Power-ups & Clue Bar -->
+                        <div class="flex justify-between items-center mb-1 shrink-0">
+                            <div class="text-xs text-slate-400 font-medium flex items-center gap-1">
+                                <span>🧩 Soal Teka-Teki #<span id="questionSeqNo">1</span></span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button id="btnPower5050" onclick="usePowerUp('5050')" class="px-2.5 py-1 rounded-lg bg-indigo-600/60 hover:bg-indigo-600 border border-indigo-400/40 text-[11px] font-bold text-indigo-100 transition">
+                                    ✂️ 50:50
+                                </button>
+                                <button id="btnPowerTime" onclick="usePowerUp('time')" class="px-2.5 py-1 rounded-lg bg-emerald-600/60 hover:bg-emerald-600 border border-emerald-400/40 text-[11px] font-bold text-emerald-100 transition">
+                                    ⏳ +5d
+                                </button>
+                                <button id="btnPowerClue" onclick="usePowerUp('clue')" class="px-2.5 py-1 rounded-lg bg-amber-600/60 hover:bg-amber-600 border border-amber-400/40 text-[11px] font-bold text-amber-100 transition">
+                                    💡 Petunjuk
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Question Text Container -->
+                        <div class="my-auto py-2">
+                            <h3 id="questionText" class="text-sm sm:text-base lg:text-lg font-bold text-white leading-relaxed text-center">
+                                Memuat pertanyaan...
+                            </h3>
+                            <!-- Hint Box -->
+                            <div id="hintBox" class="hidden mt-2 p-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs text-center">
+                                💡 <b>Petunjuk Jawaban:</b> <span id="hintText">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Options Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 shrink-0" id="optionsContainer">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Animated 36 Pandora Boxes Grid (5 cols) -->
+                    <div class="lg:col-span-5 glass-card rounded-2xl p-3 flex flex-col justify-between border border-slate-700/80 overflow-hidden">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-700/60 mb-2 shrink-0">
+                            <h3 class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                                <span>🎁</span> Papan Teka-Teki 36 Kotak Pandora
+                            </h3>
+                            <span class="text-[10px] text-slate-400">Terbuka: <b id="crosswordProgressText" class="text-emerald-400">0/36</b></span>
+                        </div>
+
+                        <!-- Animated 36 Boxes Grid Matrix -->
+                        <div class="flex-1 overflow-y-auto custom-scroll pr-1 flex items-center justify-center">
+                            <div id="crosswordMatrix" class="puzzle-grid w-full">
+                                <!-- Generated dynamically via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Legend Indicator -->
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-800 text-[10px] text-slate-400 shrink-0">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span> 100 Poin</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span> 50 Poin</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-red-500 inline-block"></span> 0 Poin</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="screenResult" class="hidden w-full h-full flex flex-col p-5 max-w-4xl mx-auto overflow-y-auto custom-scroll justify-between">
+                <div class="text-center mt-2">
+                    <div id="resultBadge" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-400 to-pink-500 flex items-center justify-center text-3xl sm:text-4xl shadow-2xl mb-2">
+                        🏆
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-400 to-cyan-300">
+                        Hasil Evaluasi Gim 36 Siswa
+                    </h2>
+                    <p id="resultSubtitle" class="text-xs sm:text-sm text-slate-300 mt-1">Laporan Kinerja Pembelajaran Kelas Kewirausahaan SMK</p>
+                </div>
+
+                <!-- Main Metrics Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4">
+                    <div class="glass-card p-3 rounded-2xl text-center border-t-2 border-amber-400">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold">Total Nilai Kelas</span>
+                        <div id="resScore" class="text-2xl font-extrabold text-amber-300">0</div>
+                    </div>
+                    <div class="glass-card p-3 rounded-2xl text-center border-t-2 border-emerald-400">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold">Rata-Rata Akurasi</span>
+                        <div id="resAccuracy" class="text-2xl font-extrabold text-emerald-400">0%</div>
+                    </div>
+                    <div class="glass-card p-3 rounded-2xl text-center border-t-2 border-cyan-400">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold">Tuntas Poin 100</span>
+                        <div id="resPerfectCount" class="text-2xl font-extrabold text-cyan-300">0/36</div>
+                    </div>
+                    <div class="glass-card p-3 rounded-2xl text-center border-t-2 border-purple-400">
+                        <span class="text-[10px] text-slate-400 uppercase font-bold">Tuntas Poin 50</span>
+                        <div id="resSecondCount" class="text-2xl font-extrabold text-purple-300">0/36</div>
+                    </div>
+                </div>
+
+                <!-- DOWNLOAD EXPORT ACTION BUTTONS -->
+                <div class="glass-card p-4 rounded-2xl border border-amber-500/40 mb-4 text-center">
+                    <h3 class="text-xs sm:text-sm font-bold text-amber-300 mb-2 flex items-center justify-center gap-2">
+                        <span>📥</span> Unduh Laporan Rekapitulasi Nilai Siswa
+                    </h3>
+                    <p class="text-xs text-slate-300 mb-3">
+                        Simpan hasil jawaban dan nilai seluruh 36 siswa langsung ke perangkat Anda dalam format Excel atau Word.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button onclick="exportToExcel()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-xs font-black text-white shadow-lg flex items-center gap-2">
+                            <span>📊</span> Download File Excel (.csv)
+                        </button>
+                        <button onclick="exportToWord()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-xs font-black text-white shadow-lg flex items-center gap-2">
+                            <span>📄</span> Download File Word (.doc)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Navigation Controls -->
+                <div class="flex flex-wrap gap-3 justify-center mb-2">
+                    <button onclick="showLeaderboardModal()" class="px-5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-xs font-bold text-amber-300">
+                        🏆 Lihat Klasemen Sesi
+                    </button>
+                    <button onclick="showReviewModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-slate-200">
+                        🔍 Review All 36 Jawaban
+                    </button>
+                    <button onclick="startGame()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-pink-600 hover:from-amber-600 hover:to-pink-700 text-xs font-extrabold text-slate-950 shadow-lg">
+                        🔄 Mainkan Ulang (Acak Soal Baru)
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div id="leaderboardModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-lg rounded-2xl p-5 flex flex-col border border-amber-500/40">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-3">
+            <h3 class="text-lg font-bold text-amber-300 flex items-center gap-2">
+                <span>🏆</span> Papan Klasemen Nilai Kelas
+            </h3>
+            <button onclick="closeLeaderboardModal()" class="text-slate-400 hover:text-white font-bold">✕</button>
+        </div>
+        <p class="text-xs text-slate-300 mb-3">Rekam jejak total nilai tertinggi dari sesi permainan kelas yang telah diselesaikan:</p>
+        <div class="max-h-60 overflow-y-auto custom-scroll space-y-2 pr-1" id="leaderboardList">
+            <!-- Dynamic entries -->
+        </div>
+        <button onclick="closeLeaderboardModal()" class="mt-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white w-full">
+            Tutup Klasemen
+        </button>
+    </div>
+</div>
+
+<!-- Review Answers Modal -->
+<div id="reviewModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-3xl max-h-[85vh] rounded-2xl p-5 flex flex-col border border-slate-700">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3 mb-3">
+            <h3 class="text-lg font-bold text-amber-300">📋 Rekapitulasi & Kunci Jawaban (36 Nomor)</h3>
+            <button onclick="closeReviewModal()" class="text-slate-400 hover:text-white font-bold">✕</button>
+        </div>
+        <div class="flex-1 overflow-y-auto custom-scroll space-y-3 pr-2" id="reviewContentList">
+            <!-- Populated via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal / Attempt Alert -->
+<div id="feedbackOverlay" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="feedbackCard" class="glass-card max-w-md w-full p-6 rounded-2xl text-center transform scale-95 transition-all border">
+        <div id="feedbackIcon" class="text-5xl mb-2">🎉</div>
+        <h3 id="feedbackTitle" class="text-xl font-extrabold mb-2 text-white">Jawaban Benar!</h3>
+        <p id="feedbackExplanation" class="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">
+            Penjelasan singkat materi.
+        </p>
+        <button id="feedbackNextBtn" onclick="nextQuestion()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 font-extrabold text-white text-sm shadow-lg">
+            Lanjut Ke Nomor Berikutnya ➔
+        </button>
+    </div>
+</div>
+
+<script>
+// Web Audio Synthesizer (Offline Sound Effects)
+class AudioSynth {
+    constructor() {
+        this.ctx = null;
+        this.enabled = true;
+    }
+
+    init() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) this.ctx = new AudioCtx();
+        }
+    }
+
+    playCorrect() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.25); // A5
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+    }
+
+    playWrong() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(240, now);
+        osc.frequency.exponentialRampToValueAtTime(120, now + 0.25);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+    }
+
+    playBoxOpen() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.2);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+    }
+
+    playClick() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(450, now);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+    }
+}
+
+const audioSynth = new AudioSynth();
+
+const rawQuestionBank = [
+    // --- TOPIC 1: BISNIS MODEL CANVAS (Q1 - Q12) ---
+    {
+        id: 1,
+        category: "Bisnis Model Canvas",
+        question: "Elemen BMC yang mendefinisikan kelompok masyarakat atau organisasi spesifik yang ingin dijangkau dan dilayani oleh bisnis adalah...",
+        correct: "Customer Segments",
+        distractors: ["Customer Relationship", "Customer Persona", "Channels Segment"],
+        keyword: "SEGMENT",
+        hint: "Target pembeli utama yang ingin dilayani.",
+        explanation: "Customer Segments menentukan spesifikasi kelompok pelanggan utama yang menjadi sasaran bisnis."
+    },
+    {
+        id: 2,
+        category: "Bisnis Model Canvas",
+        question: "Keunggulan unik atau nilai keandalan produk yang membedakan bisnis secara nyata dari para pesaing dinamakan...",
+        correct: "Value Proposition",
+        distractors: ["Value Creation", "Key Advantage", "Unique Selling Stream"],
+        keyword: "VALUE",
+        hint: "Nilai tambah unik produk.",
+        explanation: "Value Proposition merangkum seluruh manfaat unik dan solusi yang ditawarkan kepada pelanggan."
+    },
+    {
+        id: 3,
+        category: "Bisnis Model Canvas",
+        question: "Sarana atau media saluran yang digunakan untuk menyampaikan produk dan komunikasi kepada pelanggan dinamakan...",
+        correct: "Channels",
+        distractors: ["Distribution Network", "Touchpoints Stream", "Key Activities"],
+        keyword: "CHANNEL",
+        hint: "Jalur distribusi dan sarana promosi.",
+        explanation: "Channels merupakan saluran interaksi dan penyampaian produk/jasa kepada calon pembeli."
+    },
+    {
+        id: 4,
+        category: "Bisnis Model Canvas",
+        question: "Strategi perusahaan dalam membangun, membina, dan menjaga ikatan/hubungan jangka panjang dengan pelanggan dinamakan...",
+        correct: "Customer Relationship",
+        distractors: ["Customer Segments", "Public Relation", "Customer Retention Stream"],
+        keyword: "RELATION",
+        hint: "Cara merawat kesetiaan pembeli.",
+        explanation: "Customer Relationship fokus pada pemeliharaan loyalitas dan kepuasan pelanggan."
+    },
+    {
+        id: 5,
+        category: "Bisnis Model Canvas",
+        question: "Pemasukan atau aliran dana keuangan yang diperoleh perusahaan dari hasil penjualan produk/layanan dinamakan...",
+        correct: "Revenue Streams",
+        distractors: ["Cost Structure", "Cash Inflow Strategy", "Profit Margin Streams"],
+        keyword: "REVENUE",
+        hint: "Aliran dana masuk bisnis.",
+        explanation: "Revenue Streams memuat seluruh sumber pendapatan hasil kegiatan transaksi operasional."
+    },
+    {
+        id: 6,
+        category: "Bisnis Model Canvas",
+        question: "Aset-aset vital yang wajib dimiliki agar seluruh aktivitas model bisnis dapat berjalan dengan lancar dinamakan...",
+        correct: "Key Resources",
+        distractors: ["Key Activities", "Key Assets", "Core Competencies"],
+        keyword: "RESOURCE",
+        hint: "Aset fisik, SDM, finansial, atau intelektual.",
+        explanation: "Key Resources adalah sarana dan sumber daya utama pendukung kelancaran operasional bisnis."
+    },
+    {
+        id: 7,
+        category: "Bisnis Model Canvas",
+        question: "Tindakan operasional terpenting yang wajib dilakukan perusahaan agar produk dapat tercipta dan disampaikan dinamakan...",
+        correct: "Key Activities",
+        distractors: ["Key Resources", "Core Operation", "Business Processes"],
+        keyword: "ACTIVITY",
+        hint: "Kegiatan produksi atau pelayanan utama.",
+        explanation: "Key Activities mencakup rangkaian proses kerja kunci dalam menciptakan proposisi nilai."
+    },
+    {
+        id: 8,
+        category: "Bisnis Model Canvas",
+        question: "Jaringan pemasok (supplier) serta mitra kerja sama luar yang mendukung keberlanjutan bisnis dinamakan...",
+        correct: "Key Partnerships",
+        distractors: ["Key Resources", "External Stakeholders", "Vendor Alliance"],
+        keyword: "PARTNER",
+        hint: "Kerja sama eksternal strategis.",
+        explanation: "Key Partnerships mencakup mitra penyedia pasokan dan jaringan kerja sama eksternal."
+    },
+    {
+        id: 9,
+        category: "Bisnis Model Canvas",
+        question: "Rincian seluruh beban pengeluaran biaya modal dan biaya operasional yang dikeluarkan untuk menjalankan bisnis dinamakan...",
+        correct: "Cost Structure",
+        distractors: ["Revenue Streams", "Expense Ledger", "Operating Expenditure"],
+        keyword: "COSTING",
+        hint: "Struktur pengeluaran operasional.",
+        explanation: "Cost Structure merinci seluruh jenis beban biaya operasional dan efisiensi produksi."
+    },
+    {
+        id: 10,
+        category: "Bisnis Model Canvas",
+        question: "Versi awal produk berfitur paling dasar yang dibuat untuk menguji minat pasar secara cepat dinamakan...",
+        correct: "Minimum Viable Product (MVP)",
+        distractors: ["Minimum Value Prototype", "Beta Test Version", "Early Mockup Product"],
+        keyword: "PROTOTYP",
+        hint: "Disingkat MVP.",
+        explanation: "MVP dibuat sesederhana mungkin untuk validasi hipotesis kebutuhan pasar secara langsung."
+    },
+    {
+        id: 11,
+        category: "Bisnis Model Canvas",
+        question: "Gambaran profil karakter fiktif yang mewakili ciri-ciri pelanggan ideal suatu produk dinamakan...",
+        correct: "Customer Persona",
+        distractors: ["Customer Segment", "Target Demographic", "User Profile Chart"],
+        keyword: "PERSONA",
+        hint: "Profil fiktif pembeli ideal.",
+        explanation: "Customer Persona memberikan detail fiktif mendalam mengenai kebiasaan dan kebutuhan konsumen."
+    },
+    {
+        id: 12,
+        category: "Bisnis Model Canvas",
+        question: "Model bisnis yang berfokus penuh pada efisiensi dengan menekan biaya operasional seminimal mungkin disebut...",
+        correct: "Cost-Driven Structure",
+        distractors: ["Value-Driven Structure", "Profit-Driven Model", "Budget-Oriented Focus"],
+        keyword: "COSTDRIV",
+        hint: "Menekankan efisiensi biaya terendah.",
+        explanation: "Cost-Driven Structure mengutamakan penghematan dan harga terjangkau dalam operasionalnya."
+    },
+
+    // --- TOPIC 2: PEMASARAN DIGITAL & COPYWRITING (Q13 - Q24) ---
+    {
+        id: 13,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Seni naskah penulisan persuasif yang bertujuan untuk mendorong pembaca melakukan tindakan pembelian dinamakan...",
+        correct: "Copywriting",
+        distractors: ["Content Writing", "Technical Writing", "Creative Scripting"],
+        keyword: "COPYWRIT",
+        hint: "Teks promosi pemicu aksi.",
+        explanation: "Copywriting berfokus pada teknik menyusun kata-kata ajakan persuasif yang menghasilkan konversi."
+    },
+    {
+        id: 14,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Tahap 'Attention' (Hook) dalam susunan formula AIDA berfungsi utama untuk...",
+        correct: "Menghentikan perhatian audiens dalam 3 detik pertama",
+        distractors: ["Menjelaskan rincian keunggulan produk secara lengkap", "Mengajak audiens langsung melakukan pembayaran", "Menampilkan alamat lengkap lokasi toko"],
+        keyword: "ATTENTN",
+        hint: "Stop scrolling di awal video.",
+        explanation: "Attention bertugas menarik minat seketika di awal agar calon konsumen tidak melewati konten."
+    },
+    {
+        id: 15,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Tahap 'Desire' dalam formula AIDA bertugas untuk memunculkan keinginan membeli dengan menonjolkan...",
+        correct: "Value Proposition dan manfaat unik produk",
+        distractors: ["Daftar struktur biaya produksi internal", "Laporan neraca keuangan perusahaan", "Latar belakang pendidikan pendiri bisnis"],
+        keyword: "DESIRES",
+        hint: "Menonjolkan manfaat dan keunggulan.",
+        explanation: "Desire membangkitkan hasrat membeli dengan memaparkan keunggulan dan manfaat nyata dari produk."
+    },
+    {
+        id: 16,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Elemen 'Action' atau Call to Action (CTA) pada naskah copywriting berisi...",
+        correct: "Instruksi tegas agar pembeli segera bertindak membeli/menghubungi",
+        distractors: ["Penjelasan sejarah singkat berdirinya toko", "Ucapan terima kasih kepada para pengikut media sosial", "Daftar susunan direksi dan karyawan perusahaan"],
+        keyword: "CTACTION",
+        hint: "Ajakan bertindak seketika.",
+        explanation: "Action/CTA memberikan dorongan jelas bagi konsumen untuk mengklik link atau melakukan transaksi."
+    },
+    {
+        id: 17,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Kepanjangan dari formula copywriting populer 'PAS' adalah...",
+        correct: "Problem - Agitate - Solution",
+        distractors: ["Product - Action - Sales", "Price - Attraction - Satisfaction", "Promotion - Attention - Service"],
+        keyword: "PASFORMU",
+        hint: "Masalah, perjelas dampak, lalu solusi.",
+        explanation: "PAS singkatan dari Problem (Masalah), Agitate (Dampak), dan Solution (Solusi Produk)."
+    },
+    {
+        id: 18,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Dalam formula PAS, bagian 'Agitate' bertujuan untuk...",
+        correct: "Memperjelas dampak buruk dan kerugian jika masalah dibiarkan",
+        distractors: ["Memberikan potongan harga diskon secara mendadak", "Menjelaskan cara kerja mesin produksi pabrik", "Menampilkan syarat dan ketentuan garansi produk"],
+        keyword: "AGITATED",
+        hint: "Mempertegas risiko masalah.",
+        explanation: "Agitate mengungkit dampak negatif dari masalah agar konsumen merasa urgensi untuk segera mencari solusi."
+    },
+    {
+        id: 19,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Strategi optimasi situs/konten agar mudah ditemukan di pencarian utama Google secara organik dinamakan...",
+        correct: "Search Engine Optimization (SEO)",
+        distractors: ["Search Engine Marketing (SEM)", "Social Media Optimization (SMO)", "Pay-Per-Click Ad (PPC)"],
+        keyword: "OPTIMISE",
+        hint: "Pencarian organik tanpa biaya klik iklan.",
+        explanation: "SEO adalah teknik optimasi agar konten berada di peringkat atas pencarian secara organik."
+    },
+    {
+        id: 20,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Kalimat perintah seperti 'Klik Link di Bio Sekarang untuk Klaim Diskon 50%' merupakan contoh...",
+        correct: "Call to Action (CTA)",
+        distractors: ["Hook Headline", "Value Proposition", "Brand Tagline"],
+        keyword: "CALLACTN",
+        hint: "Instruksi tindakan cepat.",
+        explanation: "Call to Action (CTA) memandu calon pembeli untuk segera mengeksekusi tindakan tertentu."
+    },
+    {
+        id: 21,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Persentase perbandingan antara jumlah orang yang mengklik iklan dengan total penayangan iklan dinamakan...",
+        correct: "Click-Through Rate (CTR)",
+        distractors: ["Cost Per Click (CPC)", "Conversion Rate (CR)", "Bounce Rate (BR)"],
+        keyword: "CLICKRAT",
+        hint: "Disingkat CTR.",
+        explanation: "CTR mengukur sejauh mana keefektifan iklan dalam memicu audiens untuk mengklik."
+    },
+    {
+        id: 22,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Dokumen matriks rencana jadwal penayangan konten promosi di berbagai platform media sosial dinamakan...",
+        correct: "Content Calendar",
+        distractors: ["Content Backlog", "Editorial Timeline", "Publishing Log"],
+        keyword: "CALENDAR",
+        hint: "Jadwal kalender penayangan konten.",
+        explanation: "Content Calendar membantu menjaga konsistensi dan alur perencanaan penayangan konten promosi."
+    },
+    {
+        id: 23,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Tokoh publik media sosial yang memiliki kekuatan memengaruhi keputusan beli para pengikutnya dinamakan...",
+        correct: "Influencer / KOL",
+        distractors: ["Brand Ambassador", "Affiliate Marketer", "Social Media Admin"],
+        keyword: "INFLUENC",
+        hint: "Key Opinion Leader di sosmed.",
+        explanation: "Influencer/KOL memanfaatkan kepercayaan pengikutnya untuk memasarkan produk secara efektif."
+    },
+    {
+        id: 24,
+        category: "Pemasaran Digital & Copywriting",
+        question: "Matriks kalkulasi rasio persentase keuntungan bersih dibandingkan dengan total modal iklan yang dikeluarkan dinamakan...",
+        correct: "Return on Investment (ROI)",
+        distractors: ["Return on Ad Spend (ROAS)", "Break Even Point (BEP)", "Net Profit Ratio"],
+        keyword: "RETURNS",
+        hint: "Disingkat ROI.",
+        explanation: "ROI mengukur efisiensi pengembalian investasi dari dana yang telah dikeluarkan untuk pemasaran."
+    },
+
+    // --- TOPIC 3: KONTEN KREATIF & STORYBOARD VIDEO (Q25 - Q36) ---
+    {
+        id: 25,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Sketsa visual adegan berturut-turut beserta naskah panduan untuk pembuatan video promosi pendek dinamakan...",
+        correct: "Storyboard Video",
+        distractors: ["Video Moodboard", "Script Outline", "Scene Pipeline"],
+        keyword: "STORYBORD",
+        hint: "Sketsa visual panduan video.",
+        explanation: "Storyboard adalah peta panduan visual dan audio untuk merekam setiap adegan video promosi."
+    },
+    {
+        id: 26,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Contoh Hook visual menarik di adegan awal Storyboard video kuliner adalah...",
+        correct: "Tampilan keju meleleh ditarik tebal dengan suara krispi garing",
+        distractors: ["Tampilan naskah syarat dan ketentuan diskon toko", "Tampilan nomor rekening bank milik perusahaan", "Tampilan foto denah alamat toko dari atas"],
+        keyword: "HOOKPLAY",
+        hint: "Tampilan visual menggugah rasa di detik awal.",
+        explanation: "Tampilan keju meleleh garing secara instan menggugah selera dan menahan penonton di awal video."
+    },
+    {
+        id: 27,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Urutan adegan Storyboard video promosi yang tepat berdasarkan struktur formula PAS adalah...",
+        correct: "Adegan Masalah -> Adegan Dampak -> Adegan Solusi Produk",
+        distractors: ["Adegan Solusi -> Adegan Masalah -> Adegan Pembayaran", "Adegan Harga -> Adegan Lokasi -> Adegan Tanya Jawab", "Adegan Musik -> Adegan Kredit -> Adegan Ulasan"],
+        keyword: "PASBOARD",
+        hint: "Problem dulu, Agitate, lalu Solusi.",
+        explanation: "Alur PAS diawali adegan masalah pembeli, memperjelas dampaknya, lalu menyajikan produk sebagai solusi."
+    },
+    {
+        id: 28,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Fitur status WhatsApp Story sangat cocok dimanfaatkan dalam promosi usaha lokal SMK untuk...",
+        correct: "Promosi kilat harian (Flash Sale) & interaksi pribadi cepat",
+        distractors: ["Menyimpan dokumen arsip transaksi bulanan", "Menulis artikel blog ilmiah sepanjang 5 halaman", "Mengunduh file desain spanduk ukuran besar"],
+        keyword: "WASTORYS",
+        hint: "Pemasaran kilat personal ke kontak.",
+        explanation: "WA Story sangat responsif untuk promosi kilat dan komunikasi langsung dengan pelanggan lokal."
+    },
+    {
+        id: 29,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Teknik menyampaikan pesan promosi bisnis melalui penyampaian alur cerita emosional dinamakan...",
+        correct: "Storytelling",
+        distractors: ["Hard Selling", "Direct Advertising", "Product Broadcasting"],
+        keyword: "STORYTEL",
+        hint: "Promosi gaya narasi cerita.",
+        explanation: "Storytelling menghubungkan merek secara emosional dengan audiens melalui alur cerita yang menarik."
+    },
+    {
+        id: 30,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Tahap paling awal pada metode Design Thinking untuk memahami kebutuhan dan masalah calon pembeli adalah...",
+        correct: "Empathize",
+        distractors: ["Define", "Ideate", "Prototype"],
+        keyword: "EMPATHYZ",
+        hint: "Berempati memahami masalah audiens.",
+        explanation: "Empathize dilakukan untuk menyelami dan memahami sudut pandang serta masalah calon pengguna."
+    },
+    {
+        id: 31,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Format postingan gambar berslide bergulir di Instagram yang cocok untuk konten edukasi bertahap dinamakan...",
+        correct: "Carousel Post",
+        distractors: ["Grid Banner", "Feed Story", "Pop-up Slide"],
+        keyword: "CAROUSEL",
+        hint: "Postingan slide bergulir.",
+        explanation: "Carousel memungkinkan penyampaian informasi bertahap yang interaktif melalui slide gambar."
+    },
+    {
+        id: 32,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Konten ulasan/review asli yang dibuat langsung oleh pembeli (bukan buatan penjual) dinamakan...",
+        correct: "User-Generated Content (UGC)",
+        distractors: ["Organic Brand Content", "Customer Service Review", "Sponsorship Content"],
+        keyword: "UGCCONTN",
+        hint: "Konten asli buatan pembeli.",
+        explanation: "UGC merupakan bukti sosial (social proof) autentik yang sangat meningkatkan kepercayaan calon pembeli."
+    },
+    {
+        id: 33,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Penggunaan Trending Audio atau musik populer pada Storyboard video promosi bertujuan utama untuk...",
+        correct: "Mendorong jangkauan algoritma video ke audiens lebih luas",
+        distractors: ["Menutup suara dialog pembicara dalam video", "Membuat kualitas resolusi gambar video menjadi kecil", "Mengurangi jumlah komentar penonton di sosial media"],
+        keyword: "TRENDSND",
+        hint: "Dongkrak algoritma rekomendasi FYP.",
+        explanation: "Trending audio menduduki prioritas rekomendasi algoritma platform untuk menjangkau penonton baru."
+    },
+    {
+        id: 34,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Presentasi ringkas berupa slide deck untuk memaparkan ide bisnis dan konsep konten kepada calon investor dinamakan...",
+        correct: "Pitch Deck",
+        distractors: ["Company Portfolio", "Executive Summary", "Business Proposal Chart"],
+        keyword: "PITCHDEK",
+        hint: "Slide presentasi ide bisnis.",
+        explanation: "Pitch Deck berisi poin-poin krusial penjelasan model bisnis, pasar, dan keunggulan ide usaha."
+    },
+    {
+        id: 35,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Pendaftaran Hak Kekayaan Intelektual (HKI) atas nama merek dan karya konten video bertujuan agar...",
+        correct: "Merek & karya cipta dilindungi hukum dari peniruan pihak lain",
+        distractors: ["Bisa menjual produk tanpa perlu membayar pajak usaha", "Mendapatkan subsidi modal gratis dari pemerintah", "Otomatis mendapatkan pengikut media sosial dalam jumlah banyak"],
+        keyword: "RIGHTSHK",
+        hint: "Perlindungan hukum ciptaan.",
+        explanation: "HKI memberikan kepastian hukum dan hak eksklusif untuk melindungi identitas dan karya bisnis."
+    },
+    {
+        id: 36,
+        category: "Konten Kreatif & Storyboard Video",
+        question: "Sikap utama pencipta konten wirausaha SMK jika video promosinya sepi penonton adalah...",
+        correct: "Evaluasi Storyboard, perbaiki Hook/AIDA, dan coba inovasi baru",
+        distractors: ["Menghapus akun bisnis dan berhenti membuat konten", "Menyalahkan penonton media sosial yang tidak tertarik", "Menjiplak secara persis konten milik pesaing tanpa diubah"],
+        keyword: "INNOVATE",
+        hint: "Evaluasi naskah & pantang menyerah.",
+        explanation: "Wirausahawan sejati selalu melakukan evaluasi data, memperbaiki naskah promosi, dan terus berinovasi."
+    }
+];
+
+let questionBank = [];
+let currentQuestionIndex = 0;
+let score = 0;
+let currentAttempt = 1; // Attempt 1 or Attempt 2
+let streak = 0;
+let maxStreak = 0;
+let timer = null;
+let timeLimitPerQuestion = 15; // Default 15 seconds
+let timeLeft = 15;
+
+let powerUps = { '5050': true, 'time': true, 'clue': true };
+let userAnswers = []; // Records all 36 detailed results for Excel/Word export
+let leaderboardData = JSON.parse(localStorage.getItem('smk_game_leaderboard') || '[]');
+
+// Utility Fisher-Yates shuffle algorithm
+function shuffleArray(arr) {
+    const array = [...arr];
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// Generates randomized question bank with randomized answer options (A, B, C, D)
+function generateRandomizedQuestions() {
+    const shuffledQuestions = shuffleArray(rawQuestionBank);
+    
+    return shuffledQuestions.map((q, idx) => {
+        // Combine correct answer with distractors and shuffle
+        const allOptions = [q.correct, ...q.distractors];
+        const shuffledOpts = shuffleArray(allOptions);
+        const correctIdx = shuffledOpts.indexOf(q.correct);
+
+        return {
+            id: idx + 1,
+            originalId: q.id,
+            category: q.category,
+            question: q.question,
+            options: shuffledOpts,
+            answer: correctIdx,
+            keyword: q.keyword,
+            hint: q.hint,
+            explanation: q.explanation
+        };
+    });
+}
+
+function changeTimeLimit(val) {
+    audioSynth.playClick();
+    timeLimitPerQuestion = parseInt(val, 10);
+    document.getElementById('boxTimeLimitText').innerText = `${timeLimitPerQuestion}`;
+}
+
+function showScreen(screenId) {
+    audioSynth.playClick();
+    ['screenHome', 'screenGuide', 'screenGame', 'screenResult'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+    
+    if (screenId === 'home') document.getElementById('screenHome').classList.remove('hidden');
+    if (screenId === 'guide') document.getElementById('screenGuide').classList.remove('hidden');
+    if (screenId === 'game') document.getElementById('screenGame').classList.remove('hidden');
+    if (screenId === 'result') document.getElementById('screenResult').classList.remove('hidden');
+}
+
+function toggleFullscreen() {
+    audioSynth.playClick();
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+    }
+}
+
+function toggleAudio() {
+    audioSynth.enabled = !audioSynth.enabled;
+    document.getElementById('soundIcon').innerText = audioSynth.enabled ? "🔊" : "🔇";
+}
+
+function renderCrosswordMatrix() {
+    const container = document.getElementById('crosswordMatrix');
+    container.innerHTML = '';
+
+    questionBank.forEach((q, idx) => {
+        const cell = document.createElement('div');
+        cell.id = `crossCell-${idx}`;
+        
+        const ans = userAnswers[idx];
+        let statusClass = "unopened";
+        let displayContent = `🎁 <span class="text-[9px] mt-0.5 font-bold">#${idx+1}</span>`;
+
+        if (idx === currentQuestionIndex && userAnswers.length === idx) {
+            statusClass = "active-target";
+            displayContent = `⭐ <span class="text-[9px] mt-0.5 font-bold">#${idx+1}</span>`;
+        } else if (ans) {
+            if (ans.scoreEarned === 100) {
+                statusClass = "solved-100";
+                displayContent = `✓ <span class="text-[9px] mt-0.5 font-bold">100P</span>`;
+            } else if (ans.scoreEarned === 50) {
+                statusClass = "solved-50";
+                displayContent = `✓ <span class="text-[9px] mt-0.5 font-bold">50P</span>`;
+            } else {
+                statusClass = "failed";
+                displayContent = `✕ <span class="text-[9px] mt-0.5 font-bold">0P</span>`;
+            }
+        }
+
+        cell.className = `puzzle-card ${statusClass}`;
+        cell.innerHTML = displayContent;
+        container.appendChild(cell);
+    });
+
+    const solvedCount = userAnswers.length;
+    document.getElementById('crosswordProgressText').innerText = `${solvedCount}/36`;
+}
+
+function startGame() {
+    audioSynth.playClick();
+    
+    // Fully randomize questions and answer locations every new game!
+    questionBank = generateRandomizedQuestions();
+    
+    currentQuestionIndex = 0;
+    score = 0;
+    streak = 0;
+    maxStreak = 0;
+    userAnswers = [];
+    powerUps = { '5050': true, 'time': true, 'clue': true };
+
+    updatePowerUpUI();
+    showScreen('game');
+    prepareQuestion(currentQuestionIndex);
+}
+
+// Prepare Pandora Box reveal before launching question timer
+function prepareQuestion(index) {
+    if (index >= questionBank.length) {
+        finishGame();
+        return;
+    }
+
+    currentAttempt = 1;
+    const q = questionBank[index];
+
+    // Reset HUD
+    document.getElementById('hudQuestionNum').innerText = `${index + 1} / 36`;
+    document.getElementById('questionSeqNo').innerText = `${index + 1}`;
+    document.getElementById('hudCategoryTag').innerText = q.category;
+    document.getElementById('studentTurnIndicator').innerText = `Siswa #${index + 1}`;
+    document.getElementById('hudScore').innerText = score;
+    document.getElementById('hudStreak').innerText = `x${streak}`;
+    document.getElementById('attemptNumText').innerText = `Percobaan 1 dari 2 (100 Poin)`;
+    document.getElementById('boxTimeLimitText').innerText = `${timeLimitPerQuestion}`;
+
+    document.getElementById('pandoraBoxNum').innerText = `${index + 1}`;
+    document.getElementById('pandoraStudentNum').innerText = `${index + 1}`;
+
+    // Reset Pandora Box overlay visual state
+    const boxOverlay = document.getElementById('pandoraOverlay');
+    const boxGraphic = document.getElementById('pandoraBoxGraphic');
+    boxGraphic.classList.remove('opening');
+    boxOverlay.classList.remove('hidden');
+
+    renderCrosswordMatrix();
+}
+
+function openPandoraBox() {
+    audioSynth.playBoxOpen();
+    const boxGraphic = document.getElementById('pandoraBoxGraphic');
+    boxGraphic.classList.add('opening');
+
+    setTimeout(() => {
+        document.getElementById('pandoraOverlay').classList.add('hidden');
+        loadQuestionData(currentQuestionIndex);
+    }, 500);
+}
+
+function loadQuestionData(index) {
+    const q = questionBank[index];
+    document.getElementById('questionText').innerText = q.question;
+
+    document.getElementById('hintBox').classList.add('hidden');
+    document.getElementById('hintText').innerText = q.hint;
+
+    const optionsContainer = document.getElementById('optionsContainer');
+    optionsContainer.innerHTML = '';
+
+    const labels = ['A', 'B', 'C', 'D'];
+    q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.id = `optBtn-${idx}`;
+        btn.onclick = () => handleAnswer(idx);
+        btn.className = "p-3 rounded-xl bg-slate-800/90 hover:bg-indigo-600/80 border border-slate-700/80 text-left font-semibold text-xs sm:text-sm text-slate-100 transition duration-150 flex items-start gap-2.5 group";
+        
+        btn.innerHTML = `
+            <span class="w-6 h-6 rounded-lg bg-indigo-500/20 group-hover:bg-amber-400 group-hover:text-slate-950 border border-indigo-400/30 text-indigo-300 flex items-center justify-center font-extrabold text-xs shrink-0 transition">
+                ${labels[idx]}
+            </span>
+            <span class="leading-snug">${opt}</span>
+        `;
+        optionsContainer.appendChild(btn);
+    });
+
+    startTimer();
+}
+
+function startTimer() {
+    clearInterval(timer);
+    timeLeft = timeLimitPerQuestion;
+    updateTimerUI();
+
+    timer = setInterval(() => {
+        timeLeft--;
+        updateTimerUI();
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            handleAnswer(-1); // Timeout
+        }
+    }, 1000);
+}
+
+function updateTimerUI() {
+    document.getElementById('timerText').innerText = `${timeLeft}s`;
+    const percent = (timeLeft / timeLimitPerQuestion) * 100;
+    const bar = document.getElementById('timerBar');
+    bar.style.width = `${percent}%`;
+
+    if (timeLeft <= 4) {
+        bar.className = "bg-red-500 h-full w-full transition-all duration-200";
+    } else {
+        bar.className = "bg-gradient-to-r from-emerald-400 via-amber-400 to-red-500 h-full w-full transition-all duration-200";
+    }
+}
+
+function handleAnswer(selectedIndex) {
+    clearInterval(timer);
+    const q = questionBank[currentQuestionIndex];
+    const isCorrect = (selectedIndex === q.answer);
+
+    if (isCorrect) {
+        // Correct Answer Logic
+        audioSynth.playCorrect();
+        triggerConfettiCelebration();
+
+        const pointsEarned = (currentAttempt === 1) ? 100 : 50;
+        score += pointsEarned;
+        streak++;
+        if (streak > maxStreak) maxStreak = streak;
+
+        userAnswers.push({
+            studentNo: currentQuestionIndex + 1,
+            category: q.category,
+            questionText: q.question,
+            userChoice: q.options[selectedIndex],
+            correctChoice: q.options[q.answer],
+            scoreEarned: pointsEarned,
+            attemptsUsed: currentAttempt,
+            explanation: q.explanation
+        });
+
+        renderCrosswordMatrix();
+        showFeedbackModal(true, `🎉 Jawaban Benar (+${pointsEarned} Poin)!`, q.explanation);
+
+    } else {
+        // Wrong Answer Logic
+        audioSynth.playWrong();
+
+        if (currentAttempt === 1) {
+            // First attempt wrong -> allow second attempt!
+            currentAttempt = 2;
+            document.getElementById('attemptBadge').className = "bg-amber-600/60 border border-amber-400/50 px-3 py-1 rounded-xl text-xs font-bold text-amber-200 animate-pulse";
+            document.getElementById('attemptNumText').innerText = `Percobaan 2 (50 Poin)`;
+
+            // Disable chosen wrong button
+            if (selectedIndex >= 0) {
+                const btn = document.getElementById(`optBtn-${selectedIndex}`);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-30', 'pointer-events-none', 'bg-red-900/40');
+                }
+            }
+
+            // Resume timer for 2nd attempt
+            startTimer();
+
+        } else {
+            // Second attempt wrong or timeout -> 0 points and move on
+            streak = 0;
+            const chosenLabel = selectedIndex >= 0 ? q.options[selectedIndex] : "Waktu Habis / Tidak Menjawab";
+
+            userAnswers.push({
+                studentNo: currentQuestionIndex + 1,
+                category: q.category,
+                questionText: q.question,
+                userChoice: chosenLabel,
+                correctChoice: q.options[q.answer],
+                scoreEarned: 0,
+                attemptsUsed: 2,
+                explanation: q.explanation
+            });
+
+            renderCrosswordMatrix();
+            showFeedbackModal(false, `❌ Kesempatan Habis (0 Poin)`, q.explanation);
+        }
+    }
+}
+
+// Confetti Celebration Particle Effect
+function triggerConfettiCelebration() {
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const colors = ['#fbbf24', '#f43f5e', '#3b82f6', '#10b981', '#a855f7'];
+
+    for (let i = 0; i < 70; i++) {
+        particles.push({
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * 14,
+            vy: (Math.random() - 0.8) * 14,
+            size: Math.random() * 8 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: 1
+        });
+    }
+
+    let frame = 0;
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.25; // gravity
+            p.alpha -= 0.015;
+
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        frame++;
+        if (frame < 60) {
+            requestAnimationFrame(animate);
+        } else {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+    animate();
+}
+
+function showFeedbackModal(isCorrect, title, exp) {
+    const overlay = document.getElementById('feedbackOverlay');
+    const card = document.getElementById('feedbackCard');
+    const icon = document.getElementById('feedbackIcon');
+    const titleEl = document.getElementById('feedbackTitle');
+    const expEl = document.getElementById('feedbackExplanation');
+
+    if (isCorrect) {
+        card.className = "glass-card max-w-md w-full p-6 rounded-2xl text-center border-2 border-emerald-500/80 shadow-2xl shadow-emerald-500/20";
+        icon.innerText = "🎉";
+        titleEl.innerText = title;
+        titleEl.className = "text-xl font-extrabold mb-2 text-emerald-400";
+    } else {
+        card.className = "glass-card max-w-md w-full p-6 rounded-2xl text-center border-2 border-red-500/80 shadow-2xl shadow-red-500/20";
+        icon.innerText = "💡";
+        titleEl.innerText = title;
+        titleEl.className = "text-xl font-extrabold mb-2 text-red-400";
+    }
+
+    expEl.innerText = exp;
+    overlay.classList.remove('hidden');
+}
+
+function nextQuestion() {
+    document.getElementById('feedbackOverlay').classList.add('hidden');
+    currentQuestionIndex++;
+    prepareQuestion(currentQuestionIndex);
+}
+
+function usePowerUp(type) {
+    if (!powerUps[type]) return;
+    audioSynth.playClick();
+
+    if (type === '5050') {
+        const q = questionBank[currentQuestionIndex];
+        let disabledCount = 0;
+        for (let i = 0; i < 4; i++) {
+            if (i !== q.answer && disabledCount < 2) {
+                const btn = document.getElementById(`optBtn-${i}`);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-25', 'pointer-events-none');
+                }
+                disabledCount++;
+            }
+        }
+        powerUps['5050'] = false;
+    } else if (type === 'time') {
+        timeLeft += 5;
+        updateTimerUI();
+        powerUps['time'] = false;
+    } else if (type === 'clue') {
+        document.getElementById('hintBox').classList.remove('hidden');
+        powerUps['clue'] = false;
+    }
+
+    updatePowerUpUI();
+}
+
+function updatePowerUpUI() {
+    const btn50 = document.getElementById('btnPower5050');
+    const btnTime = document.getElementById('btnPowerTime');
+    const btnClue = document.getElementById('btnPowerClue');
+
+    if (!powerUps['5050']) btn50.classList.add('opacity-40', 'pointer-events-none');
+    if (!powerUps['time']) btnTime.classList.add('opacity-40', 'pointer-events-none');
+    if (!powerUps['clue']) btnClue.classList.add('opacity-40', 'pointer-events-none');
+}
+
+function finishGame() {
+    clearInterval(timer);
+    showScreen('result');
+
+    const totalSolved = userAnswers.length;
+    const count100 = userAnswers.filter(a => a.scoreEarned === 100).length;
+    const count50 = userAnswers.filter(a => a.scoreEarned === 50).length;
+    const accuracy = totalSolved > 0 ? Math.round(((count100 + count50) / totalSolved) * 100) : 0;
+
+    document.getElementById('resScore').innerText = score;
+    document.getElementById('resAccuracy').innerText = `${accuracy}%`;
+    document.getElementById('resPerfectCount').innerText = `${count100}/36`;
+    document.getElementById('resSecondCount').innerText = `${count50}/36`;
+
+    const badgeEl = document.getElementById('resultBadge');
+    let titlePred = "PEMULA WIRAUSAHA";
+    if (accuracy >= 80) {
+        badgeEl.innerText = "👑";
+        titlePred = "INOVATOR BISNIS DIGITAL SMK (Sangat Baik)";
+    } else if (accuracy >= 60) {
+        badgeEl.innerText = "🥈";
+        titlePred = "PEBISNIS KREATIF MUDA (Baik)";
+    } else {
+        badgeEl.innerText = "🎯";
+        titlePred = "PEMULA WIRAUSAHA (Butuh Latihan)";
+    }
+    document.getElementById('resultSubtitle').innerText = `Predikat Kelas: ${titlePred}`;
+
+    // Save session to local Leaderboard
+    const sessionRecord = {
+        date: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        score: score,
+        accuracy: accuracy,
+        perfectCount: count100
+    };
+    leaderboardData.push(sessionRecord);
+    leaderboardData.sort((a, b) => b.score - a.score);
+    leaderboardData = leaderboardData.slice(0, 10); // Keep top 10
+    localStorage.setItem('smk_game_leaderboard', JSON.stringify(leaderboardData));
+}
+
+function showLeaderboardModal() {
+    audioSynth.playClick();
+    const list = document.getElementById('leaderboardList');
+    list.innerHTML = '';
+
+    if (leaderboardData.length === 0) {
+        list.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Belum ada rekam jejak sesi permainan.</p>`;
+    } else {
+        leaderboardData.forEach((item, idx) => {
+            const entry = document.createElement('div');
+            entry.className = "flex items-center justify-between p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs";
+            entry.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold text-xs">${idx + 1}</span>
+                    <span class="text-slate-200 font-semibold">Sesi jam ${item.date}</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="text-emerald-400 font-bold">${item.accuracy}% Akurasi</span>
+                    <span class="text-amber-300 font-black text-sm">${item.score} Poin</span>
+                </div>
+            `;
+            list.appendChild(entry);
+        });
+    }
+
+    document.getElementById('leaderboardModal').classList.remove('hidden');
+}
+
+function closeLeaderboardModal() {
+    audioSynth.playClick();
+    document.getElementById('leaderboardModal').classList.add('hidden');
+}
+
+// EXPORT TO EXCEL FUNCTION (.CSV Format)
+function exportToExcel() {
+    audioSynth.playClick();
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "No Siswa,Materi Kategori,Pertanyaan,Jawaban Siswa,Kunci Jawaban,Percobaan Digunakan,Nilai Poin\n";
+
+    userAnswers.forEach(ans => {
+        const row = [
+            `Siswa #${ans.studentNo}`,
+            `"${ans.category}"`,
+            `"${ans.questionText.replace(/"/g, '""')}"`,
+            `"${ans.userChoice.replace(/"/g, '""')}"`,
+            `"${ans.correctChoice.replace(/"/g, '""')}"`,
+            `Ke-${ans.attemptsUsed}`,
+            ans.scoreEarned
+        ];
+        csvContent += row.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Rekap_Nilai_Siswa_Gim_SMK_36.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// EXPORT TO WORD FUNCTION (.DOC HTML Format)
+function exportToWord() {
+    audioSynth.playClick();
+    let header = `<html xmlns:o='urn:schemas-microsoft-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><meta charset='utf-8'><title>Laporan Nilai Siswa</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h2 { color: #1e1b4b; text-align: center; }
+        table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+        th, td { border: 1px solid #64748b; padding: 8px; font-size: 11px; text-align: left; }
+        th { background-color: #f1f5f9; font-weight: bold; }
+    </style></head><body>`;
+
+    let content = `<h2>LAPORAN EVALUASI NILAI ESTAFET GIM BISNIS SMK</h2>
+    <p><b>Total Nilai Kelas:</b> ${score} | <b>Tuntas Poin 100:</b> ${userAnswers.filter(a => a.scoreEarned === 100).length} / 36</p>
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Materi</th>
+                <th>Pertanyaan Soal</th>
+                <th>Jawaban Siswa</th>
+                <th>Kunci Jawaban</th>
+                <th>Percobaan</th>
+                <th>Poin</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    userAnswers.forEach(ans => {
+        content += `<tr>
+            <td>Siswa #${ans.studentNo}</td>
+            <td>${ans.category}</td>
+            <td>${ans.questionText}</td>
+            <td>${ans.userChoice}</td>
+            <td>${ans.correctChoice}</td>
+            <td>Ke-${ans.attemptsUsed}</td>
+            <td><b>${ans.scoreEarned}</b></td>
+        </tr>`;
+    });
+
+    content += `</tbody></table></body></html>`;
+
+    const blob = new Blob(['\ufeff' + header + content], {
+        type: 'application/msword'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Laporan_Nilai_Siswa_Gim_SMK_36.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// Review Answers Modal Helper
+function showReviewModal() {
+    audioSynth.playClick();
+    const list = document.getElementById('reviewContentList');
+    list.innerHTML = '';
+
+    questionBank.forEach((q, idx) => {
+        const userAns = userAnswers[idx];
+        const scoreVal = userAns ? userAns.scoreEarned : 0;
+
+        const item = document.createElement('div');
+        item.className = `p-3 rounded-xl border text-xs ${scoreVal === 100 ? 'bg-emerald-950/40 border-emerald-500/40' : (scoreVal === 50 ? 'bg-amber-950/40 border-amber-500/40' : 'bg-red-950/40 border-red-500/40')}`;
+        item.innerHTML = `
+            <div class="flex justify-between font-bold mb-1">
+                <span class="text-amber-300">Soal #${idx + 1} (Siswa #${idx + 1} - ${q.category})</span>
+                <span>Poin: ${scoreVal}</span>
+            </div>
+            <p class="text-white mb-1"><b>Tanya:</b> ${q.question}</p>
+            <p class="text-slate-300"><b>Kunci Jawaban:</b> ${q.options[q.answer]}</p>
+            <p class="text-slate-400 mt-1 italic"><b>Penjelasan:</b> ${q.explanation}</p>
+        `;
+        list.appendChild(item);
+    });
+
+    document.getElementById('reviewModal').classList.remove('hidden');
+}
+
+function closeReviewModal() {
+    audioSynth.playClick();
+    document.getElementById('reviewModal').classList.add('hidden');
+}
+
+// Keyboard shortcuts for quick smartboard / laptop interaction
+document.addEventListener('keydown', (e) => {
+    if (document.getElementById('screenGame').classList.contains('hidden')) return;
+    if (e.key === '1' || e.key.toLowerCase() === 'a') handleAnswer(0);
+    if (e.key === '2' || e.key.toLowerCase() === 'b') handleAnswer(1);
+    if (e.key === '3' || e.key.toLowerCase() === 'c') handleAnswer(2);
+    if (e.key === '4' || e.key.toLowerCase() === 'd') handleAnswer(3);
+});
+</script>
+</body>
+</html>
